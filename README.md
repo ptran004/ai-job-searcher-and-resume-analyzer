@@ -1,87 +1,45 @@
-# Welcome to React Router!
+# Resume Analyzer & Job Search Application
 
-A modern, production-ready template for building full-stack React applications using React Router.
+**T INFO 482 - Group 3**
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/remix-run/react-router-templates/tree/main/default)
+A web-based application designed to help job seekers optimize their resumes and streamline their job search process through intelligent analysis and feedback.
+
+## Overview
+
+This application provides users with tools to analyze their resumes, receive actionable feedback, and manage their job search more effectively. Built with modern JavaScript technologies, it offers an intuitive interface for resume evaluation and job application tracking.
 
 ## Features
 
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
-- 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
+- **Resume Analysis**: Upload and analyze resumes to receive detailed feedback on content, formatting, and effectiveness
+- **Score Evaluation**: Get an overall score for your resume based on industry best practices
+- **Job Application Tracking**: Keep track of companies and positions you've applied to
+- **Resume Management**: Store and organize multiple versions of your resume
+- **Interactive Dashboard**: View all your resumes and their analysis scores in one place
 
-## Getting Started
+## Tech Stack
 
-### Installation
+- **Frontend**: React
+- **Routing**: React Router
+- **Styling**: Tailwind CSS
+- **Language**: JavaScript/TypeScript
 
-Install the dependencies:
+## Usage
 
-```bash
-npm install
-```
+1. **Upload Resume**: Click on the upload button to add your resume to the system
+2. **View Analysis**: Navigate to your resume card to see detailed feedback and scores
+3. **Track Applications**: Add company names and job titles for positions you've applied to
+4. **Improve Your Resume**: Use the feedback provided to make targeted improvements
 
-### Development
+## Team - Group 3
 
-Start the development server with HMR:
+Peter Tran
+Jason Truong
+Kathy Nguyen
+Ethan Le
+Mahamed Ali
 
-```bash
-npm run dev
-```
+## Course Information
 
-Your application will be available at `http://localhost:5173`.
-
-## Building for Production
-
-Create a production build:
-
-```bash
-npm run build
-```
-
-## Deployment
-
-### Docker Deployment
-
-To build and run using Docker:
-
-```bash
-docker build -t my-app .
-
-# Run the container
-docker run -p 3000:3000 my-app
-```
-
-The containerized application can be deployed to any platform that supports Docker, including:
-
-- AWS ECS
-- Google Cloud Run
-- Azure Container Apps
-- Digital Ocean App Platform
-- Fly.io
-- Railway
-
-### DIY Deployment
-
-If you're familiar with deploying Node applications, the built-in app server is production-ready.
-
-Make sure to deploy the output of `npm run build`
-
-```
-├── package.json
-├── package-lock.json (or pnpm-lock.yaml, or bun.lockb)
-├── build/
-│   ├── client/    # Static assets
-│   └── server/    # Server-side code
-```
-
-## Styling
-
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
-
----
-
-Built with ❤️ using React Router.
+**Course**: T INFO 482  
+**Institution**: University of Washington
+**Term**: Winter 2026
