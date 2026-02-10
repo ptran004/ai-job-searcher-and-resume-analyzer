@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Mona+Sans:ital,wght@0,200..900;1,200..900&display=swap" rel="stylesheet">
+    <script src="https://js.puter.com/v2/"></script>
+    <style>
+        /* ===== CSS RESET & VARIABLES ===== */
+        @import url('https://fonts.googleapis.com/css2?family=Mona+Sans:ital,wght@0,200..900;1,200..900&display=swap');
+
+        :root {
+            --primary: #FF8B7B;
+            --secondary: #FF6B6B;
+            --accent: #FF9A76;
+            --bg: #ffffff;
+            --text: #475467;
+            --border: rgba(255, 107, 107, 0.2);
+            --light-bg: #f9fafb;
+            --font-sans: "Mona Sans", ui-sans-serif, system-ui, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ===== BASE STYLES ===== */
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        button, input, select, textarea {
+            font-family: inherit;
+        }
+
+        /* ===== BACKGROUND ELEMENTS ===== */
+        .noise {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.02;
+            z-index: 1000;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        .bg-svg {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .bg-svg img {
+            position: absolute;
+            max-width: none;
+            opacity: 0.18;
+            filter: saturate(1.1);
+        }
+
+        .bg-svg .bg-main {
+            width: min(1400px, 120vw);
+            top: -420px;
+            left: -420px;
+        }
+
+        .bg-svg .bg-small {
+            width: min(780px, 82vw);
+            right: -220px;
+            bottom: -260px;
+            opacity: 0.16;
+        }
+
+        header, main {
+            position: relative;
+            z-index: 1;
+        }
+
+        main {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            padding-top: 2.5rem;
+        }
+
+        /* ===== LAYOUT CONTAINERS ===== */
+        .container {
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* ===== NAVBAR ===== */
+        header {
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 999px;
+            padding: 14px 15px;
+            max-width: 90%;
+            width: auto;
+            margin: 2px auto 0;
+            border: 1px solid rgba(255, 122, 110, 0.16);
+            box-shadow: 0 14px 46px rgba(255, 122, 110, 0.18);
+        }
+
+        .text-gradient {
+            background: linear-gradient(to right, #FF9A76, #FF6B6B, #E85D75);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .logo {
+            font-size: 23px;
+            font-weight: 760;
+            letter-spacing: 0.5px;
+            line-height: 1;
+            display: inline-block;
+            margin-left: 30px;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            margin-right: 35px;
+        }
+
+        .nav-btn {
+            padding: 0.60rem 1.35rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-decoration: none;
+            border-radius: 9999px;
+            transition: all 0.3s;
+            white-space: nowrap;
+            background: linear-gradient(to bottom, #FF8B7B, #FF6B6B);
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .nav-btn:hover {
+            background: linear-gradient(to bottom, #FF7A6A, #FF5252);
+            transform: translateY(-1px);
+        }
+
+        .btn {
+            padding: 0.60rem 1.35rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            border-radius: 9999px;
+            transition: all 0.3s;
+            white-space: nowrap;
+            background: linear-gradient(to bottom, #FF8B7B, #FF6B6B);
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background: linear-gradient(to bottom, #FF7A6A, #FF5252);
+            transform: translateY(-1px);
+        }
+
+        /* ===== HERO TEXT ===== */
+        .hero-text {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+            max-width: 56rem;
+            text-align: center;
+            margin: 8rem auto 3rem;
+        }
+
+        .hero-text h1 {
+            font-size: clamp(3rem, 8vw, 4rem);
+            font-weight: 600;
+            background: linear-gradient(to right, #FF9A76, #FF6B6B, #E85D75);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+        }
+
+        .hero-text .subtitle {
+            font-size: 2rem;
+            color: var(--text);
+            font-weight: 400;
+            opacity: 0.8;
+        }
+
+        /* ===== ADD JOB BUTTON CONTAINER ===== */
+        .add-job-container {
+            display: flex;
+            justify-content: flex-start;
+            margin: 1.5rem auto 2rem;
+            max-width: 1200px;
+        }
+
+        /* ===== STATS GRID ===== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 20px rgba(255, 107, 107, 0.08);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #FF9A76, #FF6B6B);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text);
+            margin-top: 0.25rem;
+        }
+
+        /* ===== JOB CARDS ===== */
+        .job-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 20px rgba(255, 107, 107, 0.08);
+            margin-bottom: 1rem;
+            transition: all 0.3s;
+        }
+
+        .job-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(255, 107, 107, 0.15);
+        }
+
+        .job-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .job-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 0.25rem;
+        }
+
+        .job-company {
+            font-size: 1rem;
+            color: var(--secondary);
+            font-weight: 600;
+        }
+
+        .status-badge {
+            padding: 0.4rem 0.9rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .status-applied { background-color: #3B82F6; }
+        .status-interview { background-color: #F59E0B; }
+        .status-offer { background-color: #10B981; }
+        .status-rejected { background-color: #EF4444; }
+
+        .job-meta {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+            font-size: 0.875rem;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: var(--text);
+        }
+
+        .meta-item a {
+            color: var(--secondary);
+            text-decoration: none;
+        }
+
+        .meta-item a:hover {
+            text-decoration: underline;
+        }
+
+        .job-actions {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .btn-small {
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border-radius: 999px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-edit {
+            background: linear-gradient(to bottom, #FF8B7B, #FF6B6B);
+            color: white;
+        }
+
+        .btn-edit:hover {
+            background: linear-gradient(to bottom, #FF7A6A, #FF5252);
+        }
+
+        .btn-delete {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .btn-delete:hover {
+            background: #e5e7eb;
+        }
+
+        .job-notes {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: var(--light-bg);
+            border-radius: 10px;
+            font-size: 0.875rem;
+            color: var(--text);
+        }
+
+        /* ===== MODAL ===== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 1rem;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(255, 107, 107, 0.2);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #FF9A76, #FF6B6B);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text);
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text);
+            font-size: 0.875rem;
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .btn-cancel {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .btn-cancel:hover {
+            background: #e5e7eb;
+        }
+
+        /* ===== EMPTY STATE ===== */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: white;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 20px rgba(255, 107, 107, 0.08);
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .empty-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-text {
+            color: #9ca3af;
+            margin-bottom: 1.5rem;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 1rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .job-header {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+
+            .btn, .btn-small, .nav-btn {
+                width: 100%;
+            }
+
+            .nav-buttons {
+                margin-right: 0;
+                width: 100%;
+                justify-content: center;
+            }
+
+            .add-job-container {
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-buttons {
+                gap: 0.5rem;
+            }
+
+            .nav-btn {
+                padding: 0.45rem 1.05rem;
+                font-size: 0.75rem;
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<div class="noise"></div>
+
+<div class="bg-svg" aria-hidden="true">
+    <img class="bg-main" src="data:image/svg+xml,%3Csvg%20width='1880'%20height='1866'%20viewBox='0%200%201880%201866'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3E%3Cg%20clip-path='url(%23clip0_9323_314)'%3E%3Crect%20width='1880'%20height='1866'%20rx='40'%20fill='url(%23paint0_linear_9323_314)'/%3E%3Cg%20opacity='0.35'%20filter='url(%23filter0_f_9323_314)'%3E%3Cellipse%20cx='1869.5'%20cy='259.5'%20rx='384.5'%20ry='476.5'%20fill='%23FDBA74'/%3E%3C/g%3E%3Cg%20opacity='0.35'%20filter='url(%23filter1_f_9323_314)'%3E%3Cellipse%20cx='-84'%20cy='781.5'%20rx='357'%20ry='438.5'%20fill='%23FCA5A5'/%3E%3C/g%3E%3Crect%20x='1546.83'%20y='297'%20width='234.11'%20height='527.655'%20transform='rotate(30%201546.83%20297)'%20fill='url(%23paint1_linear_9323_314)'/%3E%3Crect%20x='349.436'%20y='-10'%20width='234.112'%20height='578.872'%20transform='rotate(30%20349.436%20-10)'%20fill='url(%23paint2_linear_9323_314)'/%3E%3Cpath%20d='M121%20937V1046'%20stroke='url(%23paint3_linear_9323_314)'/%3E%3Cpath%20d='M142%201133L142%201209'%20stroke='url(%23paint4_linear_9323_314)'/%3E%3Cpath%20opacity='0.7'%20d='M50%20857L50%20942'%20stroke='url(%23paint5_linear_9323_314)'/%3E%3Cpath%20d='M209%201014L209%201086'%20stroke='url(%23paint6_linear_9323_314)'/%3E%3Cpath%20d='M184%20894L184%20966'%20stroke='url(%23paint7_linear_9323_314)'/%3E%3Cpath%20d='M78%201069L78%201122'%20stroke='url(%23paint8_linear_9323_314)'/%3E%3Cpath%20opacity='0.4'%20d='M175%201096L175%201140'%20stroke='url(%23paint9_linear_9323_314)'/%3E%3Cpath%20opacity='0.2'%20d='M56%20978L56%201029'%20stroke='url(%23paint10_linear_9323_314)'/%3E%3Cpath%20d='M1803%2098V207'%20stroke='url(%23paint11_linear_9323_314)'/%3E%3Cpath%20opacity='0.7'%20d='M1688%2036L1688%20121'%20stroke='url(%23paint12_linear_9323_314)'/%3E%3Cpath%20d='M1737%20162L1737%20234'%20stroke='url(%23paint13_linear_9323_314)'/%3E%3Cpath%20d='M1844%2036L1844%20108'%20stroke='url(%23paint14_linear_9323_314)'/%3E%3Cpath%20d='M1694%20264L1694%20317'%20stroke='url(%23paint15_linear_9323_314)'/%3E%3Cpath%20opacity='0.4'%20d='M1791%20291L1791%20335'%20stroke='url(%23paint16_linear_9323_314)'/%3E%3Cpath%20opacity='0.2'%20d='M1672%20173L1672%20224'%20stroke='url(%23paint17_linear_9323_314)'/%3E%3C/g%3E%3Cdefs%3E%3Cfilter%20id='filter0_f_9323_314'%20x='985'%20y='-717'%20width='1769'%20height='1953'%20filterUnits='userSpaceOnUse'%20color-interpolation-filters='sRGB'%3E%3CfeFlood%20flood-opacity='0'%20result='BackgroundImageFix'/%3E%3CfeBlend%20mode='normal'%20in='SourceGraphic'%20in2='BackgroundImageFix'%20result='shape'/%3E%3CfeGaussianBlur%20stdDeviation='250'%20result='effect1_foregroundBlur_9323_314'/%3E%3C/filter%3E%3Cfilter%20id='filter1_f_9323_314'%20x='-941'%20y='-157'%20width='1714'%20height='1877'%20filterUnits='userSpaceOnUse'%20color-interpolation-filters='sRGB'%3E%3CfeFlood%20flood-opacity='0'%20result='BackgroundImageFix'/%3E%3CfeBlend%20mode='normal'%20in='SourceGraphic'%20in2='BackgroundImageFix'%20result='shape'/%3E%3CfeGaussianBlur%20stdDeviation='250'%20result='effect1_foregroundBlur_9323_314'/%3E%3C/filter%3E%3ClinearGradient%20id='paint0_linear_9323_314'%20x1='940'%20y1='0'%20x2='940'%20y2='1866'%20gradientUnits='userSpaceOnUse'%3E%3Cstop%20stop-color='%23FFF7ED'/%3E%3Cstop%20offset='1'%20stop-color='%23FEF2F2'/%3E%3C/linearGradient%3E%3ClinearGradient%20id='paint1_linear_9323_314'%20x1='1663.88'%20y1='297'%20x2='1663.88'%20y2='824.655'%20gradientUnits='userSpaceOnUse'%3E%3Cstop%20stop-color='white'%20stop-opacity='0'/%3E%3Cstop%20offset='0.5'%20stop-color='white'%20stop-opacity='0.5'/%3E%3Cstop%20offset='1'%20stop-color='white'%20stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient%20id='paint2_linear_9323_314'%20x1='466.492'%20y1='-10'%20x2='466.492'%20y2='568.872'%20gradientUnits='userSpaceOnUse'%3E%3Cstop%20stop-color='white'%20stop-opacity='0'/%3E%3Cstop%20offset='0.5'%20stop-color='white'%20stop-opacity='0.5'/%3E%3Cstop%20offset='1'%20stop-color='white'%20stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient%20id='paint3_linear_9323_314'%20x1='121.5'%20y1='937'%20x2='121.5'%20y2='1046'%20gradientUnits='userSpaceOnUse'%3E%3Cstop%20stop-color='white'/%3E%3Cstop%20offset='0.958275'%20stop-color='white'%20stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient%20id='paint4_linear_9323_314'%20x1='142.5'%20y1='1133'%20x2='142.5'%20y2='1209'%20gradientUnits='userSpaceOnUse'%3E%3Cstop%20stop-color='white'/%3E%3Cstop%20offset='0.958275'%20stop-color='white'%20stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient%20id='paint5_linear_9323_314'%20x1='50.5'%20y1='857'%20x2='50.5'%20y2='942'%20gradientUnits='userSpaceOnUse'%3E%3Cstop%20stop-color='white'/%3E%3Cstop%20offset='0.958275'%20stop-color='white'%20stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient%20id='paint6_linear_9323_314'%20x1='209.5'%20y1='1014'%20x2='209.5'%20y2='1086'%20gradientUnits='userSpaceOnUse'%3E%3Cstop%20stop-color='white'/%3E%3Cstop%20offset='0.958275'%20stop-color='white'%20stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient%20id='paint7_linear_9323_314'%20x1='184.5'%20y1='894'%20x2='184.5'%20y2='966'%20gradientUnits='userSpaceOnUse'%3E%3Cstop%20stop-color='white'/%3E%3Cstop%20offset='0.958275'%20stop-color='white'%20stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient%20id='paint8_linear_9323_314'%20x1='78.5'%20y1='1069'%20x2='78.5'%20y2='1122'%20gradientUnits='userSpaceOnUse'%3E%3Cstop%20stop-color='white'/%3E%3Cstop%20offset='0.958275'%20stop-color='white'%20stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient%20id='paint9_linear_9323_314'%20x1='175.5'%20y1='1096'%20x2='175.5'%20y2='1140'%20gradientUnits='userSpaceOnUse'%3E%3Cstop%20stop-color='white'/%3E%3Cstop%20offset='0.958275'%20stop-color='white'%20stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient%20id='paint10_linear_9323_314'%20x1='56.5'%20y1='978'%20x2='56.5'%20y2='1029'%20gradientUnits='userSpaceOnUse'%3E%3Cstop%20stop-color='white'/%3E%3Cstop%20offset='0.958275'%20stop-color='white'%20stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient%20id='paint11_linear_9323_314'%20x1='1803.5'%20y1='98'%20x2='1803.5'%20y2='207'%20gradientUnits='userSpaceOnUse'%3E%3Cstop%20stop-color='white'/%3E%3Cstop%20offset='0.958275'%20stop-color='white'%20stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient%20id='paint12_linear_9323_314'%20x1='1688.5'%20y1='36'%20x2='1688.5'%20y2='121'%20gradientUnits='userSpaceOnUse'%3E%3Cstop%20stop-color='white'/%3E%3Cstop%20offset='0.958275'%20stop-color='white'%20stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient%20id='paint13_linear_9323_314'%20x1='1737.5'%20y1='162'%20x2='1737.5'%20y2='234'%20gradientUnits='userSpaceOnUse'%3E%3Cstop%20stop-color='white'/%3E%3Cstop%20offset='0.958275'%20stop-color='white'%20stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient%20id='paint14_linear_9323_314'%20x1='1844.5'%20y1='36'%20x2='1844.5'%20y2='108'%20gradientUnits='userSpaceOnUse'%3E%3Cstop%20stop-color='white'/%3E%3Cstop%20offset='0.958275'%20stop-color='white'%20stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient%20id='paint15_linear_9323_314'%20x1='1694.5'%20y1='264'%20x2='1694.5'%20y2='317'%20gradientUnits='userSpaceOnUse'%3E%3Cstop%20stop-color='white'/%3E%3Cstop%20offset='0.958275'%20stop-color='white'%20stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient%20id='paint16_linear_9323_314'%20x1='1791.5'%20y1='291'%20x2='1791.5'%20y2='335'%20gradientUnits='userSpaceOnUse'%3E%3Cstop%20stop-color='white'/%3E%3Cstop%20offset='0.958275'%20stop-color='white'%20stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient%20id='paint17_linear_9323_314'%20x1='1672.5'%20y1='173'%20x2='1672.5'%20y2='224'%20gradientUnits='userSpaceOnUse'%3E%3Cstop%20stop-color='white'/%3E%3Cstop%20offset='0.958275'%20stop-color='white'%20stop-opacity='0'/%3E%3C/linearGradient%3E%3CclipPath%20id='clip0_9323_314'%3E%3Crect%20width='1880'%20height='1866'%20rx='40'%20fill='white'/%3E%3C/clipPath%3E%3C/defs%3E%3C/svg%3E" alt="">
+    <img class="bg-small" src="data:image/svg+xml,%3Csvg%20width='925'%20height='1209'%20viewBox='0%200%20925%201209'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3E%3Cg%20clip-path='url(%23clip0_9323_560)'%3E%3Crect%20width='925'%20height='1209'%20fill='url(%23paint0_linear_9323_560)'/%3E%3Cg%20opacity='0.35'%20filter='url(%23filter0_f_9323_560)'%3E%3Cellipse%20cx='1100.5'%20cy='259.5'%20rx='384.5'%20ry='476.5'%20fill='%23FF6B6B'/%3E%3C/g%3E%3Cg%20opacity='0.35'%20filter='url(%23filter1_f_9323_560)'%3E%3Cellipse%20cx='-84'%20cy='781.5'%20rx='357'%20ry='438.5'%20fill='%23FF8A80'/%3E%3C/g%3E%3Crect%20x='777.827'%20y='297'%20width='234.11'%20height='527.655'%20transform='rotate(30%20777.827%20297)'%20fill='url(%23paint1_linear_9323_560)'/%3E%3Crect%20x='349.436'%20y='-10'%20width='234.112'%20height='578.872'%20transform='rotate(30%20349.436%20-10)'%20fill='url(%23paint2_linear_9323_560)'/%3E%3Cpath%20d='M121%20937V1046'%20stroke='url(%23paint3_linear_9323_560)'/%3E%3Cpath%20d='M142%201133L142%201209'%20stroke='url(%23paint4_linear_9323_560)'/%3E%3Cpath%20opacity='0.7'%20d='M50%20857L50%20942'%20stroke='url(%23paint5_linear_9323_560)'/%3E%3Cpath%20d='M209%201014L209%201086'%20stroke='url(%23paint6_linear_9323_560)'/%3E%3Cpath%20d='M184%20894L184%20966'%20stroke='url(%23paint7_linear_9323_560)'/%3E%3Cpath%20d='M78%201069L78%201122'%20stroke='url(%23paint8_linear_9323_560)'/%3E%3Cpath%20opacity='0.4'%20d='M175%201096L175%201140'%20stroke='url(%23paint9_linear_9323_560)'/%3E%3Cpath%20opacity='0.2'%20d='M56%20978L56%201029'%20stroke='url(%23paint10_linear_9323_560)'/%3E%3Cpath%20opacity='0.7'%20d='M919%2036L919%20121'%20stroke='url(%23paint11_linear_9323_560)'/%3E%3Cpath%20d='M925%20264L925%20317'%20stroke='url(%23paint12_linear_9323_560)'/%3E%3Cpath%20opacity='0.2'%20d='M903%20173L903%20224'%20stroke='url(%23paint13_linear_9323_560)'/%3E%3C/g%3E%3Cdefs%3E%3Cfilter%20id='filter0_f_9323_560'%20x='216'%20y='-717'%20width='1769'%20height='1953'%20filterUnits='userSpaceOnUse'%20color-interpolation-filters='sRGB'%3E%3CfeFlood%20flood-opacity='0'%20result='BackgroundImageFix'/%3E%3CfeBlend%20mode='normal'%20in='SourceGraphic'%20in2='BackgroundImageFix'%20result='shape'/%3E%3CfeGaussianBlur%20stdDeviation='250'%20result='effect1_foregroundBlur_9323_560'/%3E%3C/filter%3E%3Cfilter%20id='filter1_f_9323_560'%20x='-941'%20y='-157'%20width='1714'%20height='1877'%20filterUnits='userSpaceOnUse'%20color-interpolation-filters='sRGB'%3E%3CfeFlood%20flood-opacity='0'%20result='BackgroundImageFix'/%3E%3CfeBlend%20mode='normal'%20in='SourceGraphic'%20in2='BackgroundImageFix'%20result='shape'/%3E%3CfeGaussianBlur%20stdDeviation='250'%20result='effect1_foregroundBlur_9323_560'/%3E%3C/filter%3E%3ClinearGradient%20id='paint0_linear_9323_560'%20x1='462.5'%20y1='0'%20x2='462.5'%20y2='1209'%20gradientUnits='userSpaceOnUse'%3E%3Cstop%20stop-color='%23FFE5E0'/%3E%3Cstop%20offset='1'%20stop-color='%23FFD6CC'/%3E%3C/linearGradient%3E%3ClinearGradient%20id='paint1_linear_9323_560'%20x1='894.882'%20y1='297'%20x2='894.882'%20y2='824.655'%20gradientUnits='userSpaceOnUse'%3E%3Cstop%20stop-color='white'%20stop-opacity='0'/%3E%3Cstop%20offset='0.5'%20stop-color='white'%20stop-opacity='0.5'/%3E%3Cstop%20offset='1'%20stop-color='white'%20stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient%20id='paint2_linear_9323_560'%20x1='466.492'%20y1='-10'%20x2='466.492'%20y2='568.872'%20gradientUnits='userSpaceOnUse'%3E%3Cstop%20stop-color='white'%20stop-opacity='0'/%3E%3Cstop%20offset='0.5'%20stop-color='white'%20stop-opacity='0.5'/%3E%3Cstop%20offset='1'%20stop-color='white'%20stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient%20id='paint3_linear_9323_560'%20x1='121.5'%20y1='937'%20x2='121.5'%20y2='1046'%20gradientUnits='userSpaceOnUse'%3E%3Cstop%20stop-color='white'/%3E%3Cstop%20offset='0.958275'%20stop-color='white'%20stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient%20id='paint4_linear_9323_560'%20x1='142.5'%20y1='1133'%20x2='142.5'%20y2='1209'%20gradientUnits='userSpaceOnUse'%3E%3Cstop%20stop-color='white'/%3E%3Cstop%20offset='0.958275'%20stop-color='white'%20stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient%20id='paint5_linear_9323_560'%20x1='50.5'%20y1='857'%20x2='50.5'%20y2='942'%20gradientUnits='userSpaceOnUse'%3E%3Cstop%20stop-color='white'/%3E%3Cstop%20offset='0.958275'%20stop-color='white'%20stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient%20id='paint6_linear_9323_560'%20x1='209.5'%20y1='1014'%20x2='209.5'%20y2='1086'%20gradientUnits='userSpaceOnUse'%3E%3Cstop%20stop-color='white'/%3E%3Cstop%20offset='0.958275'%20stop-color='white'%20stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient%20id='paint7_linear_9323_560'%20x1='184.5'%20y1='894'%20x2='184.5'%20y2='966'%20gradientUnits='userSpaceOnUse'%3E%3Cstop%20stop-color='white'/%3E%3Cstop%20offset='0.958275'%20stop-color='white'%20stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient%20id='paint8_linear_9323_560'%20x1='78.5'%20y1='1069'%20x2='78.5'%20y2='1122'%20gradientUnits='userSpaceOnUse'%3E%3Cstop%20stop-color='white'/%3E%3Cstop%20offset='0.958275'%20stop-color='white'%20stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient%20id='paint9_linear_9323_560'%20x1='175.5'%20y1='1096'%20x2='175.5'%20y2='1140'%20gradientUnits='userSpaceOnUse'%3E%3Cstop%20stop-color='white'/%3E%3Cstop%20offset='0.958275'%20stop-color='white'%20stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient%20id='paint10_linear_9323_560'%20x1='56.5'%20y1='978'%20x2='56.5'%20y2='1029'%20gradientUnits='userSpaceOnUse'%3E%3Cstop%20stop-color='white'/%3E%3Cstop%20offset='0.958275'%20stop-color='white'%20stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient%20id='paint11_linear_9323_560'%20x1='919.5'%20y1='36'%20x2='919.5'%20y2='121'%20gradientUnits='userSpaceOnUse'%3E%3Cstop%20stop-color='white'/%3E%3Cstop%20offset='0.958275'%20stop-color='white'%20stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient%20id='paint12_linear_9323_560'%20x1='925.5'%20y1='264'%20x2='925.5'%20y2='317'%20gradientUnits='userSpaceOnUse'%3E%3Cstop%20stop-color='white'/%3E%3Cstop%20offset='0.958275'%20stop-color='white'%20stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient%20id='paint13_linear_9323_560'%20x1='903.5'%20y1='173'%20x2='903.5'%20y2='224'%20gradientUnits='userSpaceOnUse'%3E%3Cstop%20stop-color='white'/%3E%3Cstop%20offset='0.958275'%20stop-color='white'%20stop-opacity='0'/%3E%3C/linearGradient%3E%3CclipPath%20id='clip0_9323_560'%3E%3Crect%20width='925'%20height='1209'%20fill='white'/%3E%3C/clipPath%3E%3C/defs%3E%3C/svg%3E" alt="">
+</div>
+
+<main>
+    <div class="container">
+        <!-- Navbar from job_search.html -->
+        <nav class="navbar" aria-label="Primary">
+            <a href="/" class="brand" aria-label="Home">
+                <span class="logo text-gradient">SAFFRON</span>
+            </a>
+            <div class="nav-buttons">
+                <a href="job_search.html" class="nav-btn">Job Search</a>
+                <a href="/upload" class="nav-btn">Upload Resume</a>
+                <a href="job_tracker.html" class="nav-btn">Job Tracker</a>
+            </div>
+        </nav>
+
+        <!-- Hero Text -->
+        <div class="hero-text">
+            <h1>Track Your Job Applications</h1>
+            <p class="subtitle">Stay organized and never miss a follow-up with your personal job application tracker</p>
+        </div>
+
+        <!-- Add Job Application Button -->
+        <div class="add-job-container">
+            <button class="btn" onclick="openModal()">+ Add Job Application</button>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="stat-total">0</div>
+                <div class="stat-label">Total Applications</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="stat-interview">0</div>
+                <div class="stat-label">Interviews</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="stat-offer">0</div>
+                <div class="stat-label">Offers</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="stat-response">0%</div>
+                <div class="stat-label">Response Rate</div>
+            </div>
+        </div>
+
+        <!-- Jobs List -->
+        <div id="jobs-container"></div>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="empty-state hidden">
+            <div class="empty-icon">🎯</div>
+            <div class="empty-title">No job applications yet</div>
+            <div class="empty-text">Start tracking your job search journey by adding your first application</div>
+            <button class="btn" onclick="openModal()">+ Add Your First Job</button>
+        </div>
+    </div>
+</main>
+
+<!-- Modal -->
+<div id="modal" class="modal-overlay">
+    <div class="modal" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h2 class="modal-title" id="modal-title">Add New Application</h2>
+            <button class="close-btn" onclick="closeModal()">×</button>
+        </div>
+
+        <form id="job-form" onsubmit="handleSubmit(event)">
+            <div class="form-group">
+                <label class="form-label">Company *</label>
+                <input type="text" class="form-input" id="company" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Position *</label>
+                <input type="text" class="form-input" id="position" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Location *</label>
+                <input type="text" class="form-input" id="location" placeholder="e.g., Remote, New York, NY" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Status *</label>
+                <select class="form-select" id="status" required>
+                    <option value="Applied">Applied</option>
+                    <option value="Interview">Interview</option>
+                    <option value="Offer">Offer</option>
+                    <option value="Rejected">Rejected</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Date Applied *</label>
+                <input type="date" class="form-input" id="dateApplied" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Salary Range</label>
+                <input type="text" class="form-input" id="salary" placeholder="e.g., $80k - $100k">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Job URL</label>
+                <input type="url" class="form-input" id="jobUrl" placeholder="https://...">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Notes</label>
+                <textarea class="form-textarea" id="notes" placeholder="Interview details, contact info, follow-up dates..."></textarea>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn btn-cancel" onclick="closeModal()">Cancel</button>
+                <button type="submit" class="btn" id="submit-btn">Add Application</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    let jobs = [];
+    let editingId = null;
+
+    // Initialize Puter and load jobs
+    puter.auth.getUser().then(() => {
+        loadJobs();
+    }).catch(() => {
+        console.log('Not authenticated with Puter');
+        loadJobsFromLocalStorage();
+    });
+
+    // Load jobs from Puter KV or localStorage
+    async function loadJobs() {
+        try {
+            const data = await puter.kv.get('job-tracker-jobs');
+            if (data) {
+                jobs = JSON.parse(data);
+                renderJobs();
+            }
+        } catch (error) {
+            console.log('Using localStorage fallback');
+            loadJobsFromLocalStorage();
+        }
+    }
+
+    function loadJobsFromLocalStorage() {
+        const stored = localStorage.getItem('job-tracker-jobs');
+        if (stored) {
+            jobs = JSON.parse(stored);
+            renderJobs();
+        }
+    }
+
+    // Save jobs to Puter KV or localStorage
+    async function saveJobs() {
+        const data = JSON.stringify(jobs);
+        try {
+            await puter.kv.set('job-tracker-jobs', data);
+        } catch (error) {
+            localStorage.setItem('job-tracker-jobs', data);
+        }
+    }
+
+    // Render jobs
+    function renderJobs() {
+        const container = document.getElementById('jobs-container');
+        const emptyState = document.getElementById('empty-state');
+
+        if (jobs.length === 0) {
+            container.innerHTML = '';
+            emptyState.classList.remove('hidden');
+        } else {
+            emptyState.classList.add('hidden');
+            container.innerHTML = jobs.map(job => `
+                    <div class="job-card">
+                        <div class="job-header">
+                            <div>
+                                <div class="job-title">${escapeHtml(job.position)}</div>
+                                <div class="job-company">${escapeHtml(job.company)}</div>
+                            </div>
+                            <span class="status-badge status-${job.status.toLowerCase()}">${job.status}</span>
+                        </div>
+
+                        <div class="job-meta">
+                            <div class="meta-item">
+                                <span>📍</span>
+                                <span>${escapeHtml(job.location)}</span>
+                            </div>
+                            <div class="meta-item">
+                                <span>📅</span>
+                                <span>Applied ${job.dateApplied}</span>
+                            </div>
+                            ${job.salary ? `
+                                <div class="meta-item">
+                                    <span>💰</span>
+                                    <span>${escapeHtml(job.salary)}</span>
+                                </div>
+                            ` : ''}
+                            ${job.jobUrl ? `
+                                <div class="meta-item">
+                                    <span>🔗</span>
+                                    <a href="${escapeHtml(job.jobUrl)}" target="_blank" rel="noopener noreferrer">View Job</a>
+                                </div>
+                            ` : ''}
+                        </div>
+
+                        ${job.notes ? `
+                            <div class="job-notes">
+                                <strong>Notes:</strong> ${escapeHtml(job.notes)}
+                            </div>
+                        ` : ''}
+
+                        <div class="job-actions">
+                            <button class="btn-small btn-edit" onclick="editJob('${job.id}')">✏️ Edit</button>
+                            <button class="btn-small btn-delete" onclick="deleteJob('${job.id}')">🗑️ Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+        }
+
+        updateStats();
+    }
+
+    // Update stats
+    function updateStats() {
+        const total = jobs.length;
+        const interviews = jobs.filter(j => j.status === 'Interview').length;
+        const offers = jobs.filter(j => j.status === 'Offer').length;
+        const responses = interviews + offers;
+        const responseRate = total > 0 ? Math.round((responses / total) * 100) : 0;
+
+        document.getElementById('stat-total').textContent = total;
+        document.getElementById('stat-response').textContent = responseRate + '%';
+        document.getElementById('stat-interview').textContent = interviews;
+        document.getElementById('stat-offer').textContent = offers;
+    }
+
+    // Open modal
+    function openModal() {
+        document.getElementById('modal').classList.add('active');
+        document.getElementById('modal').onclick = closeModal;
+
+        // Set default date to today
+        document.getElementById('dateApplied').value = new Date().toISOString().split('T')[0];
+    }
+
+    // Close modal
+    function closeModal() {
+        document.getElementById('modal').classList.remove('active');
+        document.getElementById('job-form').reset();
+        editingId = null;
+        document.getElementById('modal-title').textContent = 'Add New Application';
+        document.getElementById('submit-btn').textContent = 'Add Application';
+    }
+
+    // Edit job
+    function editJob(id) {
+        const job = jobs.find(j => j.id === id);
+        if (!job) return;
+
+        editingId = id;
+        document.getElementById('modal-title').textContent = 'Edit Application';
+        document.getElementById('submit-btn').textContent = 'Update Application';
+
+        document.getElementById('company').value = job.company;
+        document.getElementById('position').value = job.position;
+        document.getElementById('location').value = job.location;
+        document.getElementById('status').value = job.status;
+        document.getElementById('dateApplied').value = job.dateApplied;
+        document.getElementById('salary').value = job.salary || '';
+        document.getElementById('jobUrl').value = job.jobUrl || '';
+        document.getElementById('notes').value = job.notes || '';
+
+        openModal();
+    }
+
+    // Delete job
+    function deleteJob(id) {
+        if (!confirm('Are you sure you want to delete this job application?')) return;
+
+        jobs = jobs.filter(j => j.id !== id);
+        saveJobs();
+        renderJobs();
+    }
+
+    // Handle form submit
+    async function handleSubmit(e) {
+        e.preventDefault();
+
+        const formData = {
+            company: document.getElementById('company').value,
+            position: document.getElementById('position').value,
+            location: document.getElementById('location').value,
+            status: document.getElementById('status').value,
+            dateApplied: document.getElementById('dateApplied').value,
+            salary: document.getElementById('salary').value,
+            jobUrl: document.getElementById('jobUrl').value,
+            notes: document.getElementById('notes').value
+        };
+
+        if (editingId) {
+            const index = jobs.findIndex(j => j.id === editingId);
+            jobs[index] = { ...formData, id: editingId };
+        } else {
+            jobs.push({ ...formData, id: Date.now().toString() });
+        }
+
+        await saveJobs();
+        renderJobs();
+        closeModal();
+    }
+
+    // Escape HTML to prevent XSS
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // Initialize
+    renderJobs();
+</script>
+</body>
+</html>

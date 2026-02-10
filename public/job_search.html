@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAFFRON</title>
+    <link href="https://fonts.googleapis.com/css2?family=Mona+Sans:ital,wght@0,200..900;1,200..900&display=swap" rel="stylesheet">
+    <style>
+        /* ===== CSS RESET & VARIABLES ===== */
+        @import url('https://fonts.googleapis.com/css2?family=Mona+Sans:ital,wght@0,200..900;1,200..900&display=swap');
+
+        :root {
+            --primary: #FF8B7B;
+            --secondary: #FF6B6B;
+            --accent: #FF9A76;
+            --bg: #ffffff;
+            --text: #475467;
+            --border: rgba(255, 107, 107, 0.2);
+            --light-bg: #f9fafb;
+            --font-sans: "Mona Sans", ui-sans-serif, system-ui, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ===== BASE STYLES ===== */
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        button, input, select, textarea, a {
+            font-family: inherit;
+        }
+
+        /* ===== BACKGROUND ELEMENTS ===== */
+        .noise {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.02;
+            z-index: 1000;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        .bg-svg {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .bg-svg img {
+            position: absolute;
+            max-width: none;
+            opacity: 0.18;
+            filter: saturate(1.1);
+        }
+
+        .bg-svg .bg-main {
+            width: min(1400px, 120vw);
+            top: -420px;
+            left: -420px;
+        }
+
+        .bg-svg .bg-small {
+            width: min(780px, 82vw);
+            right: -220px;
+            bottom: -260px;
+            opacity: 0.16;
+        }
+
+        header, main {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ===== LAYOUT CONTAINERS ===== */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        main {
+            min-height: 100vh;
+            padding-top: 2.5rem;
+        }
+
+        /* ===== NAVBAR ===== */
+        header {
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 999px;
+            padding: 17px 28px;
+            max-width: 1200px;
+            margin: 42px auto 0;
+            border: 1px solid rgba(255, 122, 110, 0.16);
+            box-shadow: 0 14px 46px rgba(255, 122, 110, 0.18);
+        }
+
+        .text-gradient {
+            background: linear-gradient(to right, #FF9A76, #FF6B6B, #E85D75);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .logo {
+            font-size: 23px;
+            font-weight: 760;
+            letter-spacing: 0.5px;
+            line-height: 1;
+            display: inline-block;
+            margin-left: 15px;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            margin-right: 11px;
+        }
+
+        .nav-btn {
+            padding: 0.60rem 1.35rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-decoration: none;
+            border-radius: 9999px;
+            transition: all 0.3s;
+            white-space: nowrap;
+            background: linear-gradient(to bottom, #FF8B7B, #FF6B6B);
+            color: white;
+            border: none;
+        }
+
+        .nav-btn:hover {
+            background: linear-gradient(to bottom, #FF7A6A, #FF5252);
+            transform: translateY(-1px);
+        }
+
+        .nav-btn-primary {
+            background: linear-gradient(to bottom, #FF8B7B, #FF6B6B);
+            color: white;
+            border: none;
+        }
+
+        .nav-btn-primary:hover {
+            background: linear-gradient(to bottom, #FF7A6A, #FF5252);
+        }
+
+
+        /* ===== TYPOGRAPHY ===== */
+        .page-heading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+            max-width: 56rem;
+            text-align: center;
+            margin: 5rem auto 3rem;
+        }
+
+        .page-heading h1 {
+            font-size: clamp(3rem, 8vw, 4rem);
+            font-weight: 600;
+            background: linear-gradient(to right, #FF9A76, #FF6B6B, #E85D75);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+        }
+
+        .page-heading .subtitle {
+            font-size: 2rem;
+            color: var(--text);
+            font-weight: 400;
+            opacity: 0.8;
+        }
+
+        /* ===== FORMS & INPUTS ===== */
+        .search-section {
+            background: white;
+            border-radius: 1.5rem;
+            margin: 3rem auto;
+            max-width: 900px;
+            padding: 3rem;
+            box-shadow: inset 0 0 12px 0 rgba(36, 99, 235, 0.2);
+        }
+
+        .form-grid {
+            display: grid;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        input, select {
+            width: 100%;
+            padding: 1rem;
+            border: 1px solid #e5e7eb;
+            background: white;
+            font-family: var(--font-sans);
+            font-size: 1rem;
+            border-radius: 1rem;
+            transition: all 0.2s;
+            box-shadow: inset 0 0 12px 0 rgba(36, 99, 235, 0.2);
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+        }
+
+        small {
+            display: block;
+            margin-top: 0.25rem;
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+
+        /* ===== BUTTONS ===== */
+        button, .primary-button {
+            background: linear-gradient(to bottom, #FF8B7B, #FF6B6B);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-family: var(--font-sans);
+            font-size: 1.125rem;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            cursor: pointer;
+            border-radius: 9999px;
+            transition: all 0.3s;
+            box-shadow: 0px 74px 21px 0px #FF8B7B00;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        button:hover, .primary-button:hover {
+            background: linear-gradient(to bottom, #FF7A6A, #FF5252);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(255, 107, 107, 0.3);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* ===== MESSAGES & BOXES ===== */
+        .info-box {
+            background: linear-gradient(to bottom, #f0f4ff 60%, rgba(250, 113, 133, 0.2));
+            border: 1px solid rgba(255, 107, 107, 0.2);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .warning-box {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        /* ===== RESULTS SECTION ===== */
+        .results {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid #f3f4f6;
+            padding-bottom: 1rem;
+        }
+
+        .results-header h2 {
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--secondary);
+        }
+
+        .result-count {
+            font-size: 0.875rem;
+            color: var(--text);
+            font-weight: 500;
+        }
+
+        /* ===== JOB CARDS ===== */
+        .job-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 1.5rem;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s;
+            animation: slideIn 0.5s ease-out;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .job-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border-color: var(--secondary);
+        }
+
+        .source-badge {
+            display: inline-block;
+            background: linear-gradient(to right, #FF9A76, #FF6B6B);
+            color: white;
+            padding: 0.25rem 0.875rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.025em;
+            margin-bottom: 0.75rem;
+            border-radius: 9999px;
+        }
+
+        .job-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+            gap: 1rem;
+        }
+
+        .job-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            line-height: 1.3;
+            color: var(--text);
+        }
+
+        .job-link {
+            background: linear-gradient(to bottom, #FF8B7B, #FF6B6B);
+            color: white;
+            padding: 0.625rem 1.25rem;
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 600;
+            white-space: nowrap;
+            border-radius: 9999px;
+            transition: all 0.2s;
+        }
+
+        .job-link:hover {
+            background: linear-gradient(to bottom, #FF7A6A, #FF5252);
+            transform: scale(1.05);
+        }
+
+        .job-meta {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .meta-item {
+            font-size: 0.875rem;
+            color: var(--text);
+        }
+
+        .meta-item strong {
+            color: var(--secondary);
+            margin-right: 0.5rem;
+        }
+
+        .job-snippet {
+            line-height: 1.6;
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        /* ===== LOADING STATES ===== */
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            font-size: 1.125rem;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        .loading-progress {
+            margin-top: 1rem;
+            font-size: 0.875rem;
+            color: var(--secondary);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* ===== EMPTY STATES ===== */
+        .no-results {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 1.5rem;
+            max-width: 600px;
+            margin: 2rem auto;
+        }
+
+        .no-results h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 1rem;
+        }
+
+        /* ===== RESPONSIVE DESIGN ===== */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 1rem 1.5rem;
+                margin: 1rem 1rem 0;
+            }
+
+            .logo {
+                font-size: 22px;
+            }
+
+            .search-section {
+                padding: 2rem 1.5rem;
+                margin: 2rem 1rem;
+            }
+
+            .page-heading h1 {
+                font-size: 3rem;
+            }
+
+            .job-header {
+                flex-direction: column;
+            }
+
+            .job-meta {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .primary-button {
+                padding: 10px 14px;
+                font-size: 14px;
+            }
+
+            .container {
+                padding: 0 1rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-buttons {
+                gap: 0.5rem;
+            }
+
+            .nav-btn {
+                padding: 0.45rem 1.05rem;
+                font-size: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- Body content remains exactly the same -->
+<div class="noise"></div>
+<div class="bg-svg" aria-hidden="true">
+    <!-- SVG backgrounds remain exactly the same -->
+    <img class="bg-main" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1920 1080'%3E%3Cdefs%3E%3ClinearGradient id='grad1' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23FF8B7B;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23FF6B6B;stop-opacity:0.8' /%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M0,300 Q480,150 960,300 T1920,300 L1920,0 L0,0 Z' fill='%23FF8B7B' opacity='0.7' /%3E%3Cpath d='M0,500 Q480,350 960,500 T1920,500 L1920,200 L0,200 Z' fill='url(%23grad1)' opacity='0.6' /%3E%3Cpath d='M0,700 Q480,550 960,700 T1920,700 L1920,400 L0,400 Z' fill='%23FF9A76' opacity='0.5' /%3E%3Cpath d='M1920,600 Q1440,750 960,600 T0,600 L0,1080 L1920,1080 Z' fill='%23FF6B6B' opacity='0.4' /%3E%3C/svg%3E" alt="">
+    <img class="bg-small" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 800'%3E%3Cdefs%3E%3ClinearGradient id='grad2' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23FF9A76;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23FF8B7B;stop-opacity:0.7' /%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M0,200 Q200,100 400,200 T800,200 L800,0 L0,0 Z' fill='%23FF9A76' opacity='0.6' /%3E%3Cpath d='M0,400 Q200,300 400,400 T800,400 L800,150 L0,150 Z' fill='url(%23grad2)' opacity='0.7' /%3E%3Cpath d='M800,500 Q600,600 400,500 T0,500 L0,800 L800,800 Z' fill='%23FF8B7B' opacity='0.5' /%3E%3C/svg%3E" alt="">
+</div>
+
+<nav class="navbar" aria-label="Primary">
+    <a href="/" class="brand" aria-label="Home">
+        <span class="logo text-gradient">SAFFRON</span>
+    </a>
+    <div class="nav-buttons">
+        <a href="#jobSearchForm" class="nav-btn">Job Search</a>
+        <a href="/upload" class="nav-btn nav-btn-primary">Upload Resume</a>
+        <a href="job_tracker.html" class="nav-btn">Job Tracker</a>
+    </div>
+</nav>
+
+
+
+
+<main>
+    <div class="container">
+        <div class="page-heading">
+            <h1>Find Your Next Opportunity</h1>
+            <p class="subtitle">Search across 12+ major job boards with accurate location filtering and remote job detection</p>
+        </div>
+
+        <div class="search-section">
+            <div class="warning-box">
+                <strong>⚠️ Important Note:</strong><br>
+                Due to browser security (CORS), we cannot directly scrape Indeed, LinkedIn, or Glassdoor from your browser.
+                Instead, this tool provides direct search links to these sites with your exact location and job title pre-filled.
+                Click any result to see real-time job listings on the actual job board.
+            </div>
+
+            <form id="jobSearchForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="jobTitle">Job Title / Keywords</label>
+                        <input
+                                type="text"
+                                id="jobTitle"
+                                name="jobTitle"
+                                placeholder="e.g., Software Engineer, Nurse, Teacher, Accountant"
+                                required
+                        >
+                        <small>💡 Be specific for best results (e.g., "Registered Nurse" vs just "Nurse")</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="location">Exact Location</label>
+                        <input
+                                type="text"
+                                id="location"
+                                name="location"
+                                placeholder="e.g., Tacoma, WA or Seattle, WA or Remote"
+                                required
+                        >
+                        <small>💡 Use city, state format for accurate results (e.g., "Tacoma, WA")</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="radius">Search Radius (miles)</label>
+                        <select id="radius" name="radius">
+                            <option value="0">Exact location only</option>
+                            <option value="5">Within 5 miles</option>
+                            <option value="10" selected>Within 10 miles</option>
+                            <option value="25">Within 25 miles</option>
+                            <option value="50">Within 50 miles</option>
+                            <option value="100">Within 100 miles</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" id="searchBtn">
+                    <span>Search Job Boards</span>
+                </button>
+            </form>
+        </div>
+
+        <div id="resultsSection" style="display: none;">
+            <div class="results">
+                <div class="info-box">
+                    <strong>🎯 Direct Job Board Links</strong><br>
+                    Click on any job board below to see real-time listings for "<span id="displayQuery"></span>" in "<span id="displayLocation"></span>".
+                    Each link opens the job board with your search pre-filled and sorted by date.
+                </div>
+
+                <div class="results-header">
+                    <h2>Search These Job Boards</h2>
+                    <span class="result-count" id="resultCount"></span>
+                </div>
+
+                <div id="jobResults"></div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- JavaScript remains exactly the same -->
+<script>
+    // Your JavaScript code remains exactly as it was
+    const form = document.getElementById('jobSearchForm');
+    const resultsSection = document.getElementById('resultsSection');
+    const jobResults = document.getElementById('jobResults');
+    const resultCount = document.getElementById('resultCount');
+    const displayQuery = document.getElementById('displayQuery');
+    const displayLocation = document.getElementById('displayLocation');
+
+    // Helper function to convert radius for LinkedIn (uses different values)
+    function convertRadiusToLinkedIn(miles) {
+        // LinkedIn uses: 0, 10, 25, 50, 100
+        if (miles === '0') return '0';
+        if (miles <= '5') return '10';
+        if (miles <= '10') return '10';
+        if (miles <= '25') return '25';
+        if (miles <= '50') return '50';
+        return '100';
+    }
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const jobTitle = document.getElementById('jobTitle').value.trim();
+        const location = document.getElementById('location').value.trim();
+        const radius = document.getElementById('radius').value;
+
+        if (!jobTitle || !location) {
+            alert('Please fill in both job title and location');
+            return;
+        }
+
+        // Detect if user wants remote jobs
+        const isRemote = location.toLowerCase().includes('remote');
+
+        // Show results
+        resultsSection.style.display = 'block';
+        displayQuery.textContent = jobTitle;
+        displayLocation.textContent = isRemote ? 'Remote' : location;
+
+        // Scroll to results
+        resultsSection.scrollIntoView({ behavior: 'smooth' });
+
+        // Generate job board search links with accurate location
+        const encodedTitle = encodeURIComponent(jobTitle);
+        const encodedLocation = isRemote ? encodeURIComponent('Remote') : encodeURIComponent(location);
+
+        const jobBoards = [
+            {
+                name: 'Indeed',
+                icon: '🔍',
+                url: isRemote
+                    ? `https://www.indeed.com/jobs?q=${encodedTitle}&l=Remote&sc=0kf%3Aattr%28DSQF7%29%3B&sort=date&fromage=7`
+                    : `https://www.indeed.com/jobs?q=${encodedTitle}&l=${encodedLocation}&radius=${radius}&sort=date&fromage=7`,
+                description: isRemote
+                    ? `Search remote ${jobTitle} jobs. Indeed's #1 job site with millions of remote listings updated daily.`
+                    : `Search ${jobTitle} jobs in ${location} (${radius === '0' ? 'exact location' : 'within ' + radius + ' miles'}). Indeed is the #1 job site with millions of listings updated daily.`,
+                features: ['Most listings', 'Salary estimates', 'Company reviews', 'Easy apply']
+            },
+            {
+                name: 'LinkedIn Jobs',
+                icon: '💼',
+                url: isRemote
+                    ? `https://www.linkedin.com/jobs/search/?keywords=${encodedTitle}&location=Remote&f_WT=2&f_TPR=r86400&sortBy=DD`
+                    : `https://www.linkedin.com/jobs/search/?keywords=${encodedTitle}&location=${encodedLocation}&distance=${convertRadiusToLinkedIn(radius)}&f_TPR=r86400&sortBy=DD`,
+                description: isRemote
+                    ? `Remote ${jobTitle} jobs on LinkedIn. Connect directly with hiring managers for remote positions.`
+                    : `Professional network job search for ${jobTitle} in ${location}. Connect directly with hiring managers and see who you know at companies.`,
+                features: ['Professional network', 'Direct messaging', 'Company insights', 'Referrals']
+            },
+            {
+                name: 'Glassdoor',
+                icon: '🏢',
+                url: isRemote
+                    ? `https://www.glassdoor.com/Job/jobs.htm?sc.keyword=${encodedTitle}&locT=N&fromAge=1&sortBy=date`
+                    : `https://www.glassdoor.com/Job/jobs.htm?sc.keyword=${encodedTitle}&locT=C&locKeyword=${encodedLocation}&radius=${radius}&fromAge=1&sortBy=date`,
+                description: isRemote
+                    ? `Remote ${jobTitle} opportunities with salary data and company reviews.`
+                    : `${jobTitle} opportunities in ${location} with salary data and company reviews. See what employees really think before you apply.`,
+                features: ['Salary transparency', 'Company reviews', 'Interview tips', 'CEO ratings']
+            },
+            {
+                name: 'ZipRecruiter',
+                icon: '⚡',
+                url: isRemote
+                    ? `https://www.ziprecruiter.com/jobs-search?search=${encodedTitle}&location=Remote&days=7`
+                    : `https://www.ziprecruiter.com/jobs-search?search=${encodedTitle}&location=${encodedLocation}&radius=${radius}&days=7`,
+                description: isRemote
+                    ? `AI-powered matching for remote ${jobTitle} positions. Get matched and apply with one click.`
+                    : `AI-powered job matching for ${jobTitle} in ${location}. Get matched to jobs and apply with one click.`,
+                features: ['AI matching', 'One-click apply', 'Mobile alerts', 'Salary info']
+            },
+            {
+                name: 'Monster',
+                icon: '👹',
+                url: isRemote
+                    ? `https://www.monster.com/jobs/search?q=${encodedTitle}&where=Remote`
+                    : `https://www.monster.com/jobs/search?q=${encodedTitle}&where=${encodedLocation}&rad=${radius}`,
+                description: isRemote
+                    ? `Remote ${jobTitle} positions with career advice and resume tools.`
+                    : `Classic job board with ${jobTitle} positions in ${location}. Career advice and resume tools included.`,
+                features: ['Resume builder', 'Career advice', 'Salary tools', 'Job alerts']
+            },
+            {
+                name: 'We Work Remotely',
+                icon: '🌍',
+                url: `https://weworkremotely.com/remote-jobs/search?term=${encodedTitle}`,
+                description: `Largest remote work community with ${jobTitle} remote jobs. 100% remote positions only.`,
+                features: ['Remote-only', 'Quality jobs', 'Tech focus', 'Global companies'],
+                show: isRemote
+            },
+            {
+                name: 'Remote.co',
+                icon: '💻',
+                url: `https://remote.co/remote-jobs/${encodedTitle.toLowerCase()}/`,
+                description: `Curated remote ${jobTitle} jobs from established remote companies.`,
+                features: ['Curated listings', 'Remote culture', 'Legitimate companies', 'No scams'],
+                show: isRemote
+            },
+            {
+                name: 'FlexJobs',
+                icon: '🎯',
+                url: `https://www.flexjobs.com/search?search=${encodedTitle}&location=Remote`,
+                description: `Hand-screened remote ${jobTitle} positions. No ads, scams, or junk.`,
+                features: ['Hand-screened', 'Scam-free', 'Remote & flexible', 'Premium quality'],
+                show: isRemote
+            },
+            {
+                name: 'SimplyHired',
+                icon: '📊',
+                url: isRemote
+                    ? `https://www.simplyhired.com/search?q=${encodedTitle}&l=Remote`
+                    : `https://www.simplyhired.com/search?q=${encodedTitle}&l=${encodedLocation}&mi=${radius}`,
+                description: isRemote
+                    ? `Aggregated remote ${jobTitle} jobs from across the web.`
+                    : `Aggregated ${jobTitle} jobs from across the web in ${location}. Simple search, maximum results.`,
+                features: ['Job aggregator', 'Salary estimator', 'Clean interface', 'Multiple sources']
+            },
+            {
+                name: 'CareerBuilder',
+                icon: '🏗️',
+                url: isRemote
+                    ? `https://www.careerbuilder.com/jobs?keywords=${encodedTitle}&location=Remote`
+                    : `https://www.careerbuilder.com/jobs?keywords=${encodedTitle}&location=${encodedLocation}&radius=${radius}`,
+                description: isRemote
+                    ? `Remote ${jobTitle} careers with resources for remote job seekers.`
+                    : `Established job site for ${jobTitle} careers in ${location}. Resources for job seekers at all levels.`,
+                features: ['Resume posting', 'Job recommendations', 'Career resources', 'Salary calculator']
+            },
+            {
+                name: 'Dice (Tech Jobs)',
+                icon: '🎲',
+                url: isRemote
+                    ? `https://www.dice.com/jobs?q=${encodedTitle}&location=Remote&filters.postedDate=SEVEN&filters.workplaceTypes=Remote`
+                    : `https://www.dice.com/jobs?q=${encodedTitle}&location=${encodedLocation}&radius=${radius}&filters.postedDate=SEVEN`,
+                description: isRemote
+                    ? `Remote tech jobs for ${jobTitle}. Perfect for IT, software, and tech roles working remotely.`
+                    : `Specialized tech job board for ${jobTitle} in ${location}. Perfect for IT, software, and tech roles.`,
+                features: ['Tech-focused', 'Contract work', 'Salary data', 'Tech news'],
+                show: jobTitle.toLowerCase().match(/software|developer|engineer|tech|programmer|data|it |analyst/)
+            },
+            {
+                name: 'Google Jobs',
+                icon: '🔎',
+                url: isRemote
+                    ? `https://www.google.com/search?q=${encodedTitle}+remote+jobs&ibp=htl;jobs`
+                    : `https://www.google.com/search?q=${encodedTitle}+jobs+${encodedLocation}${radius !== '0' ? '+within+' + radius + '+miles' : ''}&ibp=htl;jobs`,
+                description: isRemote
+                    ? `Google's job search for remote ${jobTitle} positions. Searches multiple remote job sites at once.`
+                    : `Google's job search aggregator for ${jobTitle} in ${location}. Searches multiple sites at once.`,
+                features: ['Multiple sources', 'Clean interface', 'Save searches', 'Job alerts']
+            }
+        ];
+
+        // Filter tech-specific boards
+        const filteredBoards = jobBoards.filter(board => board.show !== false);
+
+        resultCount.textContent = `${filteredBoards.length} job boards ready`;
+
+        jobResults.innerHTML = filteredBoards.map((board, index) => `
+                <div class="job-card" style="animation-delay: ${index * 0.1}s">
+                    <span class="source-badge">${board.icon} ${escapeHtml(board.name)}</span>
+                    <div class="job-header">
+                        <h3 class="job-title">${board.icon} ${escapeHtml(board.name)}</h3>
+                        <a href="${board.url}" target="_blank" rel="noopener noreferrer" class="job-link">
+                            Search Now →
+                        </a>
+                    </div>
+                    <p class="job-snippet">${escapeHtml(board.description)}</p>
+                    <div class="job-meta" style="margin-top: 1rem;">
+                        ${board.features.map(feature => `
+                            <div class="meta-item"><strong>✓</strong>${escapeHtml(feature)}</div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+    });
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // Convert radius to LinkedIn's format
+    function convertRadiusToLinkedIn(radius) {
+        // LinkedIn uses specific distance values
+        const mapping = {
+            '0': '0',      // Exact location
+            '5': '5',      // 5 miles
+            '10': '10',    // 10 miles
+            '25': '25',    // 25 miles
+            '50': '50',    // 50 miles
+            '100': '100'   // 100 miles
+        };
+        return mapping[radius] || '10';
+    }
+</script>
+</body>
+</html>
