@@ -67,44 +67,6 @@ Stay organized throughout your job search:
 
 ---
 
-## 🚀 Getting Started
-
-### Prerequisites
-- Node.js (v16 or higher)
-- npm or yarn package manager
-- PuterJS account and API credentials
-- Claude.ai API key
-- OpenAI API key
-
-### Installation
-
-1. Clone the repository
-```bash
-git clone https://github.com/yourusername/saffron.git
-cd saffron
-```
-
-2. Install dependencies
-```bash
-npm install
-```
-
-3. Set up environment variables
-Create a `.env` file in the root directory:
-```env
-REACT_APP_PUTER_API_KEY=your_puter_api_key
-REACT_APP_CLAUDE_API_KEY=your_claude_api_key
-REACT_APP_OPENAI_API_KEY=your_openai_api_key
-```
-
-4. Start the development server
-```bash
-npm start
-```
-
-5. Open your browser and navigate to `http://localhost:3000`
-
----
 
 ## 📸 Screenshots
 
