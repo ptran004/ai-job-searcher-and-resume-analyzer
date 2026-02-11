@@ -216,6 +216,7 @@
 
         .form-grid {
             display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 1.5rem;
             margin-bottom: 2rem;
         }
@@ -432,6 +433,36 @@
         }
 
         /* ===== LOADING STATES ===== */
+        .loading-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            border-radius: 1rem;
+        }
+
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid var(--border);
+            border-top-color: var(--secondary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .load-more-container {
+            text-align: center;
+            margin-top: 2rem;
+            padding-bottom: 3rem;
+        }
+
         .loading {
             text-align: center;
             padding: 3rem;
@@ -548,17 +579,9 @@
     <div class="container">
         <div class="page-heading">
             <h1>Find Your Next Opportunity</h1>
-            <p class="subtitle">Search across 12+ major job boards with accurate location filtering and remote job detection</p>
+            <p class="subtitle">Search across multiple major job boards with accurate location filtering and remote job detection</p>
         </div>
-
         <div class="search-section">
-            <div class="warning-box">
-                <strong>⚠️ Important Note:</strong><br>
-                Due to browser security (CORS), we cannot directly scrape Indeed, LinkedIn, or Glassdoor from your browser.
-                Instead, this tool provides direct search links to these sites with your exact location and job title pre-filled.
-                Click any result to see real-time job listings on the actual job board.
-            </div>
-
             <form id="jobSearchForm">
                 <div class="form-grid">
                     <div class="form-group">
@@ -574,14 +597,29 @@
                     </div>
                     <div class="form-group">
                         <label for="location">Exact Location</label>
-                        <input
-                                type="text"
-                                id="location"
-                                name="location"
-                                placeholder="e.g., Tacoma, WA or Seattle, WA or Remote"
-                                required
-                        >
-                        <small>💡 Use city, state format for accurate results (e.g., "Tacoma, WA")</small>
+                        <select id="location" name="location" required>
+                            <option value="">Select a location...</option>
+                            <option value="Remote">Remote</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="timeFrame">Time Frame</label>
+                        <select id="timeFrame" name="timeFrame">
+                            <option value="any">Any Time</option>
+                            <option value="24h">Past 24 Hours</option>
+                            <option value="week">Past Week</option>
+                            <option value="month">Past Month</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="jobLevel">Job Level</label>
+                        <select id="jobLevel" name="jobLevel">
+                            <option value="any">Any Level</option>
+                            <option value="internship">Internship</option>
+                            <option value="entry_level">Entry Level</option>
+                            <option value="mid_level">Mid Level</option>
+                            <option value="senior_level">Senior Level</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label for="radius">Search Radius (miles)</label>
@@ -604,239 +642,185 @@
         <div id="resultsSection" style="display: none;">
             <div class="results">
                 <div class="info-box">
-                    <strong>🎯 Direct Job Board Links</strong><br>
-                    Click on any job board below to see real-time listings for "<span id="displayQuery"></span>" in "<span id="displayLocation"></span>".
-                    Each link opens the job board with your search pre-filled and sorted by date.
+                    <strong>🎯 Real-Time Job Results via SerpAPI</strong><br>
+                    Showing actual job listings for "<span id="displayQuery"></span>" in "<span id="displayLocation"></span>".
+                    Results are fetched from Google Jobs using SerpAPI.
                 </div>
 
                 <div class="results-header">
-                    <h2>Search These Job Boards</h2>
+                    <h2>Job Results</h2>
                     <span class="result-count" id="resultCount"></span>
                 </div>
 
                 <div id="jobResults"></div>
+                <div id="loadMoreContainer" class="load-more-container" style="display: none;">
+                    <button id="loadMoreBtn" class="primary-button">
+                        <span>Load More Jobs</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 </main>
 
-<!-- JavaScript remains exactly the same -->
 <script>
-    // Your JavaScript code remains exactly as it was
+    // Constants for US Cities and States
+    const US_CITIES = [
+        "New York, NY", "Los Angeles, CA", "Chicago, IL", "Houston, TX", "Phoenix, AZ",
+        "Philadelphia, PA", "San Antonio, TX", "San Diego, CA", "Dallas, TX", "San Jose, CA",
+        "Austin, TX", "Jacksonville, FL", "Fort Worth, TX", "Columbus, OH", "San Francisco, CA",
+        "Charlotte, NC", "Indianapolis, IN", "Seattle, WA", "Denver, CO", "Washington, DC",
+        "Boston, MA", "El Paso, TX", "Nashville, TN", "Detroit, MI", "Oklahoma City, OK",
+        "Portland, OR", "Las Vegas, NV", "Memphis, TN", "Louisville, KY", "Baltimore, MD",
+        "Milwaukee, WI", "Albuquerque, NM", "Tucson, AZ", "Fresno, CA", "Sacramento, CA",
+        "Kansas City, MO", "Mesa, AZ", "Atlanta, GA", "Omaha, NE", "Colorado Springs, CO",
+        "Raleigh, NC", "Miami, FL", "Virginia Beach, VA", "Oakland, CA", "Minneapolis, MN",
+        "Tulsa, OK", "Arlington, TX", "New Orleans, LA", "Wichita, KS", "Cleveland, OH",
+        "Tampa, FL", "Bakersfield, CA", "Aurora, CO", "Anaheim, CA", "Honolulu, HI",
+        "Santa Ana, CA", "Riverside, CA", "Corpus Christi, TX", "Lexington, KY", "Stockton, CA",
+        "Henderson, NV", "Saint Paul, MN", "St. Louis, MO", "Cincinnati, OH", "Pittsburgh, PA",
+        "Greensboro, NC", "Anchorage, AK", "Plano, TX", "Lincoln, NE", "Orlando, FL",
+        "Irvine, CA", "Newark, NJ", "Toledo, OH", "Durham, NC", "Chula Vista, CA",
+        "Fort Wayne, IN", "Jersey City, NJ", "St. Petersburg, FL", "Laredo, TX", "Madison, WI",
+        "Chandler, AZ", "Buffalo, NY", "Lubbock, TX", "Scottsdale, AZ", "Reno, NV",
+        "Glendale, AZ", "Gilbert, AZ", "Winston-Salem, NC", "North Las Vegas, NV", "Norfolk, VA",
+        "Chesapeake, VA", "Garland, TX", "Irving, TX", "Hialeah, FL", "Fremont, CA",
+        "Boise, ID", "Richmond, VA", "Baton Rouge, LA", "Spokane, WA", "Des Moines, IA"
+    ];
+
+    // Populate Location Dropdown
+    const locationSelect = document.getElementById('location');
+    US_CITIES.sort().forEach(city => {
+        const option = document.createElement('option');
+        option.value = city;
+        option.textContent = city;
+        locationSelect.appendChild(option);
+    });
+
     const form = document.getElementById('jobSearchForm');
     const resultsSection = document.getElementById('resultsSection');
     const jobResults = document.getElementById('jobResults');
     const resultCount = document.getElementById('resultCount');
     const displayQuery = document.getElementById('displayQuery');
     const displayLocation = document.getElementById('displayLocation');
+    const loadMoreContainer = document.getElementById('loadMoreContainer');
+    const loadMoreBtn = document.getElementById('loadMoreBtn');
 
-    // Helper function to convert radius for LinkedIn (uses different values)
-    function convertRadiusToLinkedIn(miles) {
-        // LinkedIn uses: 0, 10, 25, 50, 100
-        if (miles === '0') return '0';
-        if (miles <= '5') return '10';
-        if (miles <= '10') return '10';
-        if (miles <= '25') return '25';
-        if (miles <= '50') return '50';
-        return '100';
-    }
+    let allJobs = [];
+    let displayedCount = 0;
+    const JOBS_PER_PAGE = 10;
+    const MAX_JOBS = 10;
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
         const jobTitle = document.getElementById('jobTitle').value.trim();
-        const location = document.getElementById('location').value.trim();
+        const location = document.getElementById('location').value;
         const radius = document.getElementById('radius').value;
+        const timeFrame = document.getElementById('timeFrame').value;
+        const jobLevel = document.getElementById('jobLevel').value;
 
         if (!jobTitle || !location) {
             alert('Please fill in both job title and location');
             return;
         }
 
-        // Detect if user wants remote jobs
-        const isRemote = location.toLowerCase().includes('remote');
-
         // Show results
         resultsSection.style.display = 'block';
         displayQuery.textContent = jobTitle;
-        displayLocation.textContent = isRemote ? 'Remote' : location;
+        displayLocation.textContent = location;
+        
+        // Reset state
+        allJobs = [];
+        displayedCount = 0;
+        jobResults.innerHTML = '';
+        loadMoreContainer.style.display = 'none';
+
+        // Show loading state
+        jobResults.innerHTML = '<div class="loading">Searching for jobs...<div class="loading-progress">Fetching real-time results from SerpAPI</div></div>';
 
         // Scroll to results
         resultsSection.scrollIntoView({ behavior: 'smooth' });
 
-        // Generate job board search links with accurate location
-        const encodedTitle = encodeURIComponent(jobTitle);
-        const encodedLocation = isRemote ? encodeURIComponent('Remote') : encodeURIComponent(location);
+        try {
+            const apiUrl = `/api/job-search?jobTitle=${encodeURIComponent(jobTitle)}&location=${encodeURIComponent(location)}&radius=${radius}&timeFrame=${timeFrame}&jobLevel=${jobLevel}&limit=${MAX_JOBS}`;
+            const response = await fetch(apiUrl);
+            const data = await response.json();
 
-        const jobBoards = [
-            {
-                name: 'Indeed',
-                icon: '🔍',
-                url: isRemote
-                    ? `https://www.indeed.com/jobs?q=${encodedTitle}&l=Remote&sc=0kf%3Aattr%28DSQF7%29%3B&sort=date&fromage=7`
-                    : `https://www.indeed.com/jobs?q=${encodedTitle}&l=${encodedLocation}&radius=${radius}&sort=date&fromage=7`,
-                description: isRemote
-                    ? `Search remote ${jobTitle} jobs. Indeed's #1 job site with millions of remote listings updated daily.`
-                    : `Search ${jobTitle} jobs in ${location} (${radius === '0' ? 'exact location' : 'within ' + radius + ' miles'}). Indeed is the #1 job site with millions of listings updated daily.`,
-                features: ['Most listings', 'Salary estimates', 'Company reviews', 'Easy apply']
-            },
-            {
-                name: 'LinkedIn Jobs',
-                icon: '💼',
-                url: isRemote
-                    ? `https://www.linkedin.com/jobs/search/?keywords=${encodedTitle}&location=Remote&f_WT=2&f_TPR=r86400&sortBy=DD`
-                    : `https://www.linkedin.com/jobs/search/?keywords=${encodedTitle}&location=${encodedLocation}&distance=${convertRadiusToLinkedIn(radius)}&f_TPR=r86400&sortBy=DD`,
-                description: isRemote
-                    ? `Remote ${jobTitle} jobs on LinkedIn. Connect directly with hiring managers for remote positions.`
-                    : `Professional network job search for ${jobTitle} in ${location}. Connect directly with hiring managers and see who you know at companies.`,
-                features: ['Professional network', 'Direct messaging', 'Company insights', 'Referrals']
-            },
-            {
-                name: 'Glassdoor',
-                icon: '🏢',
-                url: isRemote
-                    ? `https://www.glassdoor.com/Job/jobs.htm?sc.keyword=${encodedTitle}&locT=N&fromAge=1&sortBy=date`
-                    : `https://www.glassdoor.com/Job/jobs.htm?sc.keyword=${encodedTitle}&locT=C&locKeyword=${encodedLocation}&radius=${radius}&fromAge=1&sortBy=date`,
-                description: isRemote
-                    ? `Remote ${jobTitle} opportunities with salary data and company reviews.`
-                    : `${jobTitle} opportunities in ${location} with salary data and company reviews. See what employees really think before you apply.`,
-                features: ['Salary transparency', 'Company reviews', 'Interview tips', 'CEO ratings']
-            },
-            {
-                name: 'ZipRecruiter',
-                icon: '⚡',
-                url: isRemote
-                    ? `https://www.ziprecruiter.com/jobs-search?search=${encodedTitle}&location=Remote&days=7`
-                    : `https://www.ziprecruiter.com/jobs-search?search=${encodedTitle}&location=${encodedLocation}&radius=${radius}&days=7`,
-                description: isRemote
-                    ? `AI-powered matching for remote ${jobTitle} positions. Get matched and apply with one click.`
-                    : `AI-powered job matching for ${jobTitle} in ${location}. Get matched to jobs and apply with one click.`,
-                features: ['AI matching', 'One-click apply', 'Mobile alerts', 'Salary info']
-            },
-            {
-                name: 'Monster',
-                icon: '👹',
-                url: isRemote
-                    ? `https://www.monster.com/jobs/search?q=${encodedTitle}&where=Remote`
-                    : `https://www.monster.com/jobs/search?q=${encodedTitle}&where=${encodedLocation}&rad=${radius}`,
-                description: isRemote
-                    ? `Remote ${jobTitle} positions with career advice and resume tools.`
-                    : `Classic job board with ${jobTitle} positions in ${location}. Career advice and resume tools included.`,
-                features: ['Resume builder', 'Career advice', 'Salary tools', 'Job alerts']
-            },
-            {
-                name: 'We Work Remotely',
-                icon: '🌍',
-                url: `https://weworkremotely.com/remote-jobs/search?term=${encodedTitle}`,
-                description: `Largest remote work community with ${jobTitle} remote jobs. 100% remote positions only.`,
-                features: ['Remote-only', 'Quality jobs', 'Tech focus', 'Global companies'],
-                show: isRemote
-            },
-            {
-                name: 'Remote.co',
-                icon: '💻',
-                url: `https://remote.co/remote-jobs/${encodedTitle.toLowerCase()}/`,
-                description: `Curated remote ${jobTitle} jobs from established remote companies.`,
-                features: ['Curated listings', 'Remote culture', 'Legitimate companies', 'No scams'],
-                show: isRemote
-            },
-            {
-                name: 'FlexJobs',
-                icon: '🎯',
-                url: `https://www.flexjobs.com/search?search=${encodedTitle}&location=Remote`,
-                description: `Hand-screened remote ${jobTitle} positions. No ads, scams, or junk.`,
-                features: ['Hand-screened', 'Scam-free', 'Remote & flexible', 'Premium quality'],
-                show: isRemote
-            },
-            {
-                name: 'SimplyHired',
-                icon: '📊',
-                url: isRemote
-                    ? `https://www.simplyhired.com/search?q=${encodedTitle}&l=Remote`
-                    : `https://www.simplyhired.com/search?q=${encodedTitle}&l=${encodedLocation}&mi=${radius}`,
-                description: isRemote
-                    ? `Aggregated remote ${jobTitle} jobs from across the web.`
-                    : `Aggregated ${jobTitle} jobs from across the web in ${location}. Simple search, maximum results.`,
-                features: ['Job aggregator', 'Salary estimator', 'Clean interface', 'Multiple sources']
-            },
-            {
-                name: 'CareerBuilder',
-                icon: '🏗️',
-                url: isRemote
-                    ? `https://www.careerbuilder.com/jobs?keywords=${encodedTitle}&location=Remote`
-                    : `https://www.careerbuilder.com/jobs?keywords=${encodedTitle}&location=${encodedLocation}&radius=${radius}`,
-                description: isRemote
-                    ? `Remote ${jobTitle} careers with resources for remote job seekers.`
-                    : `Established job site for ${jobTitle} careers in ${location}. Resources for job seekers at all levels.`,
-                features: ['Resume posting', 'Job recommendations', 'Career resources', 'Salary calculator']
-            },
-            {
-                name: 'Dice (Tech Jobs)',
-                icon: '🎲',
-                url: isRemote
-                    ? `https://www.dice.com/jobs?q=${encodedTitle}&location=Remote&filters.postedDate=SEVEN&filters.workplaceTypes=Remote`
-                    : `https://www.dice.com/jobs?q=${encodedTitle}&location=${encodedLocation}&radius=${radius}&filters.postedDate=SEVEN`,
-                description: isRemote
-                    ? `Remote tech jobs for ${jobTitle}. Perfect for IT, software, and tech roles working remotely.`
-                    : `Specialized tech job board for ${jobTitle} in ${location}. Perfect for IT, software, and tech roles.`,
-                features: ['Tech-focused', 'Contract work', 'Salary data', 'Tech news'],
-                show: jobTitle.toLowerCase().match(/software|developer|engineer|tech|programmer|data|it |analyst/)
-            },
-            {
-                name: 'Google Jobs',
-                icon: '🔎',
-                url: isRemote
-                    ? `https://www.google.com/search?q=${encodedTitle}+remote+jobs&ibp=htl;jobs`
-                    : `https://www.google.com/search?q=${encodedTitle}+jobs+${encodedLocation}${radius !== '0' ? '+within+' + radius + '+miles' : ''}&ibp=htl;jobs`,
-                description: isRemote
-                    ? `Google's job search for remote ${jobTitle} positions. Searches multiple remote job sites at once.`
-                    : `Google's job search aggregator for ${jobTitle} in ${location}. Searches multiple sites at once.`,
-                features: ['Multiple sources', 'Clean interface', 'Save searches', 'Job alerts']
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to fetch jobs');
             }
-        ];
 
-        // Filter tech-specific boards
-        const filteredBoards = jobBoards.filter(board => board.show !== false);
-
-        resultCount.textContent = `${filteredBoards.length} job boards ready`;
-
-        jobResults.innerHTML = filteredBoards.map((board, index) => `
-                <div class="job-card" style="animation-delay: ${index * 0.1}s">
-                    <span class="source-badge">${board.icon} ${escapeHtml(board.name)}</span>
-                    <div class="job-header">
-                        <h3 class="job-title">${board.icon} ${escapeHtml(board.name)}</h3>
-                        <a href="${board.url}" target="_blank" rel="noopener noreferrer" class="job-link">
-                            Search Now →
-                        </a>
+            if (data.success && data.jobs.length > 0) {
+                allJobs = data.jobs;
+                resultCount.textContent = `${data.totalResults} jobs found`;
+                jobResults.innerHTML = ''; // Clear loading
+                displayNextJobs();
+            } else {
+                jobResults.innerHTML = `
+                    <div class="no-results">
+                        <h3>No jobs found</h3>
+                        <p>Try searching with different keywords, location, or a wider time frame.</p>
                     </div>
-                    <p class="job-snippet">${escapeHtml(board.description)}</p>
-                    <div class="job-meta" style="margin-top: 1rem;">
-                        ${board.features.map(feature => `
-                            <div class="meta-item"><strong>✓</strong>${escapeHtml(feature)}</div>
-                        `).join('')}
-                    </div>
+                `;
+                resultCount.textContent = '0 jobs found';
+            }
+        } catch (error) {
+            console.error('Error fetching jobs:', error);
+            jobResults.innerHTML = `
+                <div class="warning-box">
+                    <strong>⚠️ Error fetching jobs:</strong><br>
+                    ${escapeHtml(error.message)}
                 </div>
-            `).join('');
+            `;
+        }
+    });
+
+    function displayNextJobs() {
+        const nextJobs = allJobs.slice(displayedCount, displayedCount + JOBS_PER_PAGE);
+        
+        const jobsHtml = nextJobs.map((job, index) => {
+            const applyLink = job.link || (job.allLinks && job.allLinks.length > 0 ? job.allLinks[0] : null);
+            
+            return `
+            <div class="job-card" style="animation-delay: ${(index % JOBS_PER_PAGE) * 0.1}s">
+                <span class="source-badge">🔍 Google Jobs (via SerpAPI)</span>
+                <div class="job-header">
+                    <h3 class="job-title">${escapeHtml(job.title)}</h3>
+                    ${applyLink ? `<a href="${applyLink}" target="_blank" rel="noopener noreferrer" class="job-link">
+                        Apply Now →
+                    </a>` : ''}
+                </div>
+                <div class="job-meta">
+                    <div class="meta-item"><strong>Company:</strong>${escapeHtml(job.company)}</div>
+                    <div class="meta-item"><strong>Location:</strong>${escapeHtml(job.location)}</div>
+                    ${job.salary ? `<div class="meta-item"><strong>Salary:</strong>${escapeHtml(job.salary)}</div>` : ''}
+                    ${job.jobType ? `<div class="meta-item"><strong>Type:</strong>${escapeHtml(job.jobType)}</div>` : ''}
+                    ${job.postedAt ? `<div class="meta-item"><strong>Posted:</strong>${escapeHtml(job.postedAt)}</div>` : ''}
+                </div>
+                ${job.description ? `<p class="job-snippet">${escapeHtml(job.description.substring(0, 300))}${job.description.length > 300 ? '...' : ''}</p>` : ''}
+            </div>
+        `}).join('');
+
+        jobResults.insertAdjacentHTML('beforeend', jobsHtml);
+        displayedCount += nextJobs.length;
+
+        if (displayedCount < allJobs.length) {
+            loadMoreContainer.style.display = 'block';
+        } else {
+            loadMoreContainer.style.display = 'none';
+        }
+    }
+
+    loadMoreBtn.addEventListener('click', () => {
+        displayNextJobs();
     });
 
     function escapeHtml(text) {
+        if (!text) return '';
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
-    }
-
-    // Convert radius to LinkedIn's format
-    function convertRadiusToLinkedIn(radius) {
-        // LinkedIn uses specific distance values
-        const mapping = {
-            '0': '0',      // Exact location
-            '5': '5',      // 5 miles
-            '10': '10',    // 10 miles
-            '25': '25',    // 25 miles
-            '50': '50',    // 50 miles
-            '100': '100'   // 100 miles
-        };
-        return mapping[radius] || '10';
     }
 </script>
 </body>
